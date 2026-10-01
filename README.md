@@ -93,7 +93,7 @@ choices rather than findings.
 
 ## Validation
 
-120 automated checks in `tests/`, covering the counting rules, trend adjustment,
+122 automated checks in `tests/`, covering the counting rules, trend adjustment,
 distribution fitting, pricing identities, the projection path, the data layer
 (with a stubbed network) the chart axes, tooltips and slider ranges, and the wording of the policy terms.
 Includes a 400-case fuzz over random assumption sets

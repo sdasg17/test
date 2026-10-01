@@ -345,41 +345,64 @@ const UNPRICEABLE = analyse(synthetic(false), DEFAULTS, 2000, 2024, 10000);
 const strip = (props: Record<string, unknown>) =>
   renderToStaticMarkup(React.createElement(ResultStrip, props as never));
 
-check('The strip leads with the premium per customer', () => {
-  const html = strip({ result: FIXTURE, peril: 'both', currency: GBP, policies: 89000, loading: false });
-  const text = plain(html);
-  if (!html.includes('rs-headline')) return 'no headline figure';
-  // The labels are uppercased in CSS, so the markup carries them as written.
-  return inOrder(text.toLowerCase(), ['per customer', 'customers', 'money taken in', 'reserve']);
+const STRIP = {
+  result: FIXTURE,
+  peril: 'both' as const,
+  a: DEFAULTS,
+  currency: GBP,
+  policies: 89000,
+  locationName: 'Greater London',
+  loading: false,
+};
+
+check('The strip separates one policy from the whole book', () => {
+  // Four bare figures with a per-policy price beside a book-wide reserve is
+  // actively misleading, so each group has to say which scale it is on.
+  const text = plain(strip(STRIP)).toLowerCase();
+  return inOrder(text, ['one policy', 'the whole book', 'customers', 'premium', 'reserve']);
+});
+
+check('The strip names the area and the take-up its book figures assume', () => {
+  const text = plain(strip(STRIP)).toLowerCase();
+  if (!text.includes('greater london')) return 'area not named';
+  if (!text.includes('take-up')) return 'take-up rate not named';
+  if (!text.includes('1.0%')) return 'take-up rate not shown';
+  return null;
 });
 
 check('The strip counts the book it was given', () => {
-  const html = plain(strip({ result: FIXTURE, peril: 'both', currency: GBP, policies: 89000, loading: false }));
-  return html.includes('89,000') ? null : `customer count missing from ${html}`;
+  const text = plain(strip(STRIP));
+  return text.includes('89,000') ? null : `customer count missing from ${text}`;
 });
 
 check('The strip says what it is waiting for rather than showing a blank', () => {
-  const waiting = plain(strip({ result: null, peril: 'both', currency: GBP, policies: null, loading: true }));
+  const waiting = plain(strip({ ...STRIP, result: null, policies: null, loading: true }));
   if (!waiting.includes('Reading the temperature record')) return `loading state reads "${waiting}"`;
-  const idle = plain(strip({ result: null, peril: 'both', currency: GBP, policies: null, loading: false }));
-  if (!idle.includes('Select an area')) return `idle state reads "${idle}"`;
+  const idle = plain(strip({ ...STRIP, result: null, policies: null, loading: false }));
+  // The idle line doubles as the instruction, since the map is the only way on.
+  if (!idle.toLowerCase().includes('draw a box')) return `idle state reads "${idle}"`;
   return null;
 });
 
 check('The strip never prints a figure it does not have', () => {
-  // A trigger that never fired gives an unpriceable result, and a headline of
-  // zero would read as a free policy rather than as no answer.
-  const html = plain(strip({ result: UNPRICEABLE, peril: 'both', currency: GBP, policies: 89000, loading: false }));
+  const html = plain(strip({ ...STRIP, result: UNPRICEABLE }));
   if (html.includes('£0')) return 'printed a zero premium';
   if (!html.includes('never fired')) return `unpriceable state reads "${html}"`;
   return null;
 });
 
+check('The strip holds back book figures until a population is known', () => {
+  const html = plain(strip({ ...STRIP, policies: null }));
+  if (html.includes('£0')) return 'printed zero book figures';
+  if (!html.toLowerCase().includes('population')) return `no-population state reads "${html}"`;
+  return null;
+});
+
 check('The strip follows the peril being priced', () => {
-  const both = plain(strip({ result: FIXTURE, peril: 'both', currency: GBP, policies: 89000, loading: false }));
-  const heat = plain(strip({ result: FIXTURE, peril: 'heat', currency: GBP, policies: 89000, loading: false }));
-  if (!both.toLowerCase().includes('heat and cold')) return 'combined cover not named';
-  if (!heat.toLowerCase().includes('heat only')) return 'heat-only cover not named';
+  const both = plain(strip(STRIP)).toLowerCase();
+  const heat = plain(strip({ ...STRIP, peril: 'heat' })).toLowerCase();
+  if (!both.includes('heat and cold')) return 'combined cover not named';
+  if (!heat.includes('heat only')) return 'heat-only cover not named';
   return null;
 });
 

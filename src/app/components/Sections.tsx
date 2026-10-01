@@ -81,10 +81,12 @@ export const yearTicks = (start: number, end: number, step: number): number[] =>
 export const ResultStrip: React.FC<{
   result: LocationResult | null;
   peril: Peril;
+  a: Assumptions;
   currency: Currency;
   policies: number | null;
+  locationName: string;
   loading: boolean;
-}> = ({ result, peril, currency, policies, loading }) => {
+}> = ({ result, peril, a, currency, policies, locationName, loading }) => {
   const sel = result ? pickPrice(result, peril) : null;
   const n = policies ?? 0;
 
@@ -95,35 +97,48 @@ export const ResultStrip: React.FC<{
           {loading
             ? 'Reading the temperature record'
             : !result
-              ? 'Select an area to price it'
+              ? 'Search a city or draw a box on the map to price an area'
               : 'No price: this trigger never fired in the record'}
         </p>
       </div>
     );
   }
 
-  const items: Array<[string, string]> = [
-    ['Customers', count(n, currency)],
-    ['Money taken in', n > 0 ? moneyShort(n * sel.premium, currency) : '—'],
-    ['Reserve', n > 0 ? moneyShort(n * sel.capital, currency) : '—'],
-  ];
-
   return (
     <div className="result-strip">
-      <div className="rs-main">
-        <span className="rs-headline">{money(sel.premium, currency)}</span>
-        <span className="rs-caption">
-          per customer / year
-          <br />
-          {perilLabel[peril]}
+      <div className="rs-group rs-group-main">
+        <span className="rs-eyebrow">One policy · {perilLabel[peril].toLowerCase()}</span>
+        <span className="rs-row">
+          <span className="rs-headline">{money(sel.premium, currency)}</span>
+          <span className="rs-unit">a year</span>
         </span>
       </div>
-      {items.map(([k, v]) => (
-        <div className="rs-item" key={k}>
-          <span className="rs-k">{k}</span>
-          <span className="rs-v">{v}</span>
-        </div>
-      ))}
+
+      <div className="rs-group">
+        <span className="rs-eyebrow">
+          The whole book in {locationName} · {pct(a.adoption, a.adoption < 0.01 ? 2 : 1)} take-up
+        </span>
+        <span className="rs-row">
+          {n > 0 ? (
+            <>
+              <span className="rs-pair">
+                <span className="rs-fig">{count(n, currency)}</span>
+                <span className="rs-word">customers</span>
+              </span>
+              <span className="rs-pair">
+                <span className="rs-fig">{moneyShort(n * sel.premium, currency)}</span>
+                <span className="rs-word">premium</span>
+              </span>
+              <span className="rs-pair">
+                <span className="rs-fig">{moneyShort(n * sel.capital, currency)}</span>
+                <span className="rs-word">reserve</span>
+              </span>
+            </>
+          ) : (
+            <span className="rs-word">Waiting for a population estimate</span>
+          )}
+        </span>
+      </div>
     </div>
   );
 };

@@ -320,6 +320,15 @@ export default function App() {
               )}
             </div>
 
+            {/* Nothing on the map says what a visitor is meant to do with it,
+                so the prompt sits directly under the controls it refers to and
+                changes once an area of their own is in play. */}
+            <div className="map-prompt">
+              {isCustomArea
+                ? 'Drag a new box to re-price, or clear it to go back to the search area.'
+                : 'Search any city, or draw a box to price an area of your own.'}
+            </div>
+
             <AreaMap
               area={area}
               fitToken={fitToken}
@@ -334,6 +343,9 @@ export default function App() {
                 background: 'linear-gradient(to top, rgba(20,24,27,0.95) 0%, rgba(20,24,27,0) 100%)',
               }}
             >
+              <p style={{ fontSize: 10, color: 'var(--signal)', letterSpacing: '0.11em', textTransform: 'uppercase', fontWeight: 600, marginBottom: 3 }}>
+                Pricing this area
+              </p>
               <p className="text-xs font-medium truncate">{locationName}</p>
               <p style={{ fontSize: 10.5, color: 'var(--muted)', marginTop: 2 }}>
                 Index {index.lat.toFixed(3)}, {index.lon.toFixed(3)} · {startYear}–{endYear}
@@ -364,8 +376,10 @@ export default function App() {
               <ResultStrip
                 result={result}
                 peril={peril}
+                a={assumptions}
                 currency={currency}
                 policies={policies}
+                locationName={locationName}
                 loading={historyLoading}
               />
             </div>
