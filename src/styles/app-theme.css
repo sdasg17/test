@@ -1,0 +1,1035 @@
+/**
+ * BellWeather — instrument console
+ *
+ * This is a pricing tool, not a page about a pricing tool. It should read as
+ * an instrument: graphite panels, dense controls, figures at a size you scan
+ * rather than admire, and no marketing voice anywhere.
+ *
+ * One typeface, Space Grotesk, with tabular figures throughout. Colour is
+ * reserved for the two perils and for state. Nothing structural is coloured.
+ */
+
+@import url('https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&display=swap');
+
+:root {
+  --void: #1b2026;
+  --wash: #232930;
+  --paper: #2b323a;
+  --raised: #333b44;
+  --wash-deep: #3a434d;
+
+  --ink: #f7f9fa;
+  --ink-soft: rgba(247, 249, 250, 0.88);
+  --muted: rgba(247, 249, 250, 0.66);
+  --rule: #3c4550;
+  --rule-strong: #566170;
+
+  --heat: #ff7a55;
+  --cold: #6fb4f2;
+  --signal: #f5d162;
+
+  /* Kept for components that still reference the old names */
+  --heat-hot: #ff7a55;
+  --heat-warm: #ff7a55;
+  --heat-mild: #f5d162;
+  --heat-cool: #6fb4f2;
+
+  --ui: 'Space Grotesk', system-ui, -apple-system, sans-serif;
+}
+
+html,
+body {
+  height: 100%;
+  margin: 0;
+  overflow: hidden;
+}
+
+body {
+  font-family: var(--ui);
+  color: var(--ink);
+  background: var(--wash);
+  -webkit-font-smoothing: antialiased;
+  font-variant-numeric: tabular-nums;
+}
+
+#root {
+  height: 100%;
+}
+
+::selection {
+  background: var(--signal);
+  color: var(--void);
+}
+
+h1,
+h2,
+h3,
+h4 {
+  margin: 0;
+  font-weight: 600;
+  letter-spacing: -0.02em;
+  color: var(--ink);
+}
+
+.app-shell {
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  background: var(--wash);
+}
+
+/* --------------------------------------------------------------------------
+   Header
+   -------------------------------------------------------------------------- */
+
+.topbar {
+  flex-shrink: 0;
+  background: var(--void);
+  border-bottom: 1px solid var(--rule);
+}
+
+.topbar-row {
+  height: 48px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  padding: 0 14px;
+}
+
+.wordmark {
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  background: none;
+  border: 0;
+  padding: 0;
+  cursor: pointer;
+  color: var(--ink);
+}
+
+.wordmark-text {
+  font-size: 16px;
+  font-weight: 600;
+  letter-spacing: -0.025em;
+}
+
+.ramp {
+  display: inline-block;
+  width: 40px;
+  height: 7px;
+  background: linear-gradient(90deg, var(--cold) 0%, var(--signal) 52%, var(--heat) 100%);
+}
+
+.utility {
+  font-size: 10px;
+  font-weight: 500;
+  letter-spacing: 0.13em;
+  text-transform: uppercase;
+  color: var(--muted);
+}
+
+.seg {
+  display: inline-flex;
+  gap: 1px;
+  background: var(--rule);
+  border: 1px solid var(--rule);
+  border-radius: 2px;
+}
+
+.seg button {
+  font-family: var(--ui);
+  font-size: 11px;
+  font-weight: 500;
+  padding: 5px 11px;
+  border: 0;
+  background: var(--void);
+  color: var(--muted);
+  cursor: pointer;
+}
+
+.seg button:hover {
+  color: var(--ink);
+}
+
+.seg button[data-active='true'] {
+  background: var(--ink);
+  color: var(--void);
+}
+
+.icon-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 28px;
+  height: 28px;
+  border: 1px solid var(--rule);
+  border-radius: 2px;
+  background: transparent;
+  color: var(--muted);
+  cursor: pointer;
+}
+
+.icon-btn:hover {
+  color: var(--ink);
+  border-color: var(--rule-strong);
+}
+
+/* --------------------------------------------------------------------------
+   Workspace
+   -------------------------------------------------------------------------- */
+
+.workspace {
+  flex: 1;
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
+}
+
+@media (min-width: 1000px) {
+  .workspace {
+    flex-direction: row;
+  }
+}
+
+.map-pane {
+  position: relative;
+  height: 40vh;
+  min-height: 280px;
+  flex-shrink: 0;
+  border-bottom: 1px solid var(--rule);
+  background: var(--void);
+}
+
+@media (min-width: 1000px) {
+  .map-pane {
+    height: auto;
+    width: 42%;
+    max-width: 720px;
+    min-width: 340px;
+    border-bottom: 0;
+    border-right: 1px solid var(--rule);
+  }
+}
+
+.content-pane {
+  flex: 1;
+  min-height: 0;
+  min-width: 0;
+  overflow-y: auto;
+  scroll-behavior: smooth;
+  background: var(--wash);
+}
+
+.content-pane::-webkit-scrollbar {
+  width: 9px;
+}
+
+.content-pane::-webkit-scrollbar-thumb {
+  background: var(--rule);
+  border-radius: 999px;
+}
+
+.doc-nav {
+  display: flex;
+  gap: 1px;
+  padding: 0 14px;
+  overflow-x: auto;
+  scrollbar-width: none;
+  background: var(--void);
+}
+
+.doc-nav::-webkit-scrollbar {
+  display: none;
+}
+
+.doc-nav button {
+  flex-shrink: 0;
+  font-family: var(--ui);
+  font-size: 10.5px;
+  font-weight: 500;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  padding: 11px 12px;
+  border: 0;
+  border-bottom: 2px solid transparent;
+  background: transparent;
+  color: var(--muted);
+  cursor: pointer;
+  white-space: nowrap;
+}
+
+.doc-nav button:hover {
+  color: var(--ink);
+}
+
+.doc-nav button[data-active='true'] {
+  color: var(--ink);
+  border-bottom-color: var(--heat);
+}
+
+.doc-section {
+  padding: 22px 14px 26px;
+  border-top: 1px solid var(--rule);
+  scroll-margin-top: var(--doc-head-h, 96px);
+}
+
+.doc-section:first-of-type {
+  border-top: 0;
+}
+
+@media (min-width: 1000px) {
+  .doc-section {
+    padding: 24px 20px 30px;
+  }
+}
+
+/* Full width, no reading-width cap: this is a console, not an article. */
+.section-inner {
+  width: 100%;
+}
+
+/* --------------------------------------------------------------------------
+   Section headers, deliberately small
+   -------------------------------------------------------------------------- */
+
+.section-index {
+  font-size: 10px;
+  font-weight: 500;
+  letter-spacing: 0.13em;
+  text-transform: uppercase;
+  color: var(--muted);
+}
+
+.section-title {
+  font-size: 19px;
+  font-weight: 600;
+  letter-spacing: -0.02em;
+  line-height: 1.2;
+  margin: 3px 0 0;
+}
+
+.section-standfirst {
+  font-size: 12px;
+  line-height: 1.55;
+  color: var(--muted);
+  margin-top: 7px;
+  max-width: none;
+}
+
+.section-body {
+  margin-top: 16px;
+}
+
+/* --------------------------------------------------------------------------
+   Panels and readouts
+   -------------------------------------------------------------------------- */
+
+.panel {
+  background: var(--paper);
+  border: 1px solid var(--rule);
+  border-radius: 3px;
+}
+
+.panel-pad {
+  padding: 14px;
+}
+
+.panel-head {
+  font-size: 10px;
+  font-weight: 500;
+  letter-spacing: 0.13em;
+  text-transform: uppercase;
+  color: var(--muted);
+  padding: 9px 14px;
+  border-bottom: 1px solid var(--rule);
+  background: var(--raised);
+}
+
+.hairline {
+  border-top: 1px solid var(--rule);
+}
+
+.chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  font-size: 9.5px;
+  font-weight: 500;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  padding: 3px 7px;
+  border-radius: 2px;
+  border: 1px solid var(--rule-strong);
+  color: var(--muted);
+}
+
+/* A readout strip: labels above compact values, one line each, no orphan
+   cells because items flex rather than sitting in a fixed grid. */
+.readout {
+  display: flex;
+  flex-wrap: wrap;
+  background: var(--paper);
+  border: 1px solid var(--rule);
+  border-radius: 3px;
+  overflow: hidden;
+}
+
+.readout > * {
+  flex: 1 1 0;
+  min-width: 128px;
+  padding: 11px 13px;
+  border-right: 1px solid var(--rule);
+}
+
+.readout > *:last-child {
+  border-right: 0;
+}
+
+.readout-label {
+  font-size: 9.5px;
+  font-weight: 500;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--muted);
+  line-height: 1.35;
+  min-height: 2.7em;
+}
+
+.readout-value {
+  font-size: 21px;
+  font-weight: 600;
+  letter-spacing: -0.02em;
+  line-height: 1.1;
+  margin-top: 5px;
+  white-space: nowrap;
+}
+
+.readout-note {
+  font-size: 10.5px;
+  color: var(--muted);
+  margin-top: 3px;
+  line-height: 1.35;
+}
+
+/* The one figure a panel exists to produce, given room to be seen first. */
+.readout > [data-primary] {
+  flex: 1.6 1 0;
+  min-width: 168px;
+  background: var(--raised);
+}
+
+.readout > [data-primary] .readout-value {
+  font-size: 38px;
+  letter-spacing: -0.03em;
+  margin-top: 3px;
+}
+
+.readout > [data-primary] .readout-label {
+  color: var(--ink-soft);
+}
+
+@media (max-width: 900px) {
+  .readout > [data-primary] .readout-value {
+    font-size: 30px;
+  }
+}
+
+/* --------------------------------------------------------------------------
+   Tables
+   -------------------------------------------------------------------------- */
+
+.data-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 12.5px;
+}
+
+.data-table th {
+  text-align: right;
+  font-weight: 500;
+  color: var(--muted);
+  font-size: 9.5px;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  padding: 0 10px 7px;
+  white-space: nowrap;
+  border-bottom: 1px solid var(--rule-strong);
+}
+
+.data-table th:first-child,
+.data-table td:first-child {
+  text-align: left;
+  padding-left: 12px;
+}
+
+.data-table td {
+  text-align: right;
+  padding: 7px 10px;
+  border-top: 1px solid var(--rule);
+}
+
+.data-table tr[data-strong='true'] td {
+  font-weight: 600;
+  background: var(--raised);
+}
+
+.data-table tr[data-current='true'] td {
+  background: rgba(239, 200, 74, 0.12);
+}
+
+.data-table tbody tr:hover td {
+  background: rgba(238, 241, 242, 0.04);
+}
+
+/* --------------------------------------------------------------------------
+   Controls
+   -------------------------------------------------------------------------- */
+
+.field-label {
+  font-size: 9.5px;
+  font-weight: 500;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--muted);
+  display: flex;
+  align-items: flex-end;
+  line-height: 1.35;
+  min-height: 26px;
+  margin-bottom: 6px;
+}
+
+input[type='number'],
+input[type='text'],
+select {
+  font-family: var(--ui);
+  font-variant-numeric: tabular-nums;
+  color: var(--ink);
+  background: var(--void);
+  border: 1px solid var(--rule-strong);
+  border-radius: 2px;
+  font-size: 13px;
+  padding: 6px 8px;
+  width: 100%;
+  box-sizing: border-box;
+}
+
+input[type='number']:hover,
+select:hover {
+  border-color: var(--muted);
+}
+
+input::placeholder {
+  color: rgba(238, 241, 242, 0.3);
+}
+
+select {
+  appearance: none;
+  background-image: linear-gradient(45deg, transparent 50%, var(--muted) 50%),
+    linear-gradient(135deg, var(--muted) 50%, transparent 50%);
+  background-position: calc(100% - 15px) 52%, calc(100% - 10px) 52%;
+  background-size: 5px 5px, 5px 5px;
+  background-repeat: no-repeat;
+  padding-right: 26px;
+}
+
+select option {
+  background: var(--paper);
+  color: var(--ink);
+}
+
+input[type='range'] {
+  -webkit-appearance: none;
+  appearance: none;
+  flex: 1;
+  min-width: 0;
+  height: 3px;
+  padding: 0;
+  border: 0;
+  background: var(--wash-deep);
+  border-radius: 999px;
+  cursor: pointer;
+}
+
+input[type='range']::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  appearance: none;
+  width: 15px;
+  height: 15px;
+  border-radius: 50%;
+  background: var(--ink);
+  border: 3px solid var(--void);
+  box-shadow: 0 0 0 1px var(--rule-strong);
+  cursor: pointer;
+}
+
+input[type='range']::-moz-range-thumb {
+  width: 15px;
+  height: 15px;
+  border-radius: 50%;
+  background: var(--ink);
+  border: 3px solid var(--void);
+  cursor: pointer;
+}
+
+input:focus-visible,
+select:focus-visible,
+button:focus-visible {
+  outline: 1px solid var(--signal);
+  outline-offset: 1px;
+}
+
+.pill-select {
+  display: inline-flex;
+  gap: 1px;
+  background: var(--rule);
+  border: 1px solid var(--rule);
+  border-radius: 2px;
+}
+
+.pill {
+  font-family: var(--ui);
+  font-size: 11px;
+  font-weight: 500;
+  padding: 6px 12px;
+  border: 0;
+  background: var(--void);
+  color: var(--muted);
+  cursor: pointer;
+  white-space: nowrap;
+}
+
+.pill:hover {
+  color: var(--ink);
+}
+
+.pill[data-active='true'] {
+  background: var(--ink);
+  color: var(--void);
+}
+
+.btn-solid {
+  font-family: var(--ui);
+  font-size: 11px;
+  font-weight: 500;
+  background: var(--ink);
+  color: var(--void);
+  border: 1px solid var(--ink);
+  border-radius: 2px;
+  cursor: pointer;
+  padding: 7px 13px;
+}
+
+.btn-solid:hover {
+  background: #fff;
+}
+
+.btn-solid:disabled {
+  opacity: 0.45;
+  cursor: default;
+}
+
+.btn-ghost {
+  font-family: var(--ui);
+  font-size: 11px;
+  font-weight: 500;
+  background: var(--paper);
+  color: var(--ink);
+  border: 1px solid var(--rule-strong);
+  border-radius: 2px;
+  cursor: pointer;
+  padding: 7px 13px;
+}
+
+.btn-ghost:hover {
+  border-color: var(--muted);
+}
+
+/* --------------------------------------------------------------------------
+   Map and charts
+   -------------------------------------------------------------------------- */
+
+.leaflet-container {
+  width: 100%;
+  height: 100%;
+  background: var(--void) !important;
+  font-family: var(--ui) !important;
+}
+
+.leaflet-pane,
+.leaflet-top,
+.leaflet-bottom {
+  z-index: 400 !important;
+}
+
+/* Clear the search field and the draw controls, which sit over the top edge. */
+.leaflet-top.leaflet-left {
+  top: 56px;
+}
+
+@media (max-width: 640px) {
+  .leaflet-top.leaflet-left {
+    top: 96px;
+  }
+}
+
+.leaflet-control-attribution {
+  background: rgba(20, 24, 27, 0.8) !important;
+  color: var(--muted) !important;
+  font-size: 9px !important;
+}
+
+.leaflet-control-attribution a {
+  color: var(--ink-soft) !important;
+}
+
+.leaflet-control-zoom a {
+  background: var(--paper) !important;
+  color: var(--ink) !important;
+  border-color: var(--rule) !important;
+}
+
+.leaflet-popup-content-wrapper,
+.leaflet-popup-tip {
+  background: var(--paper) !important;
+  color: var(--ink) !important;
+  border-radius: 3px !important;
+}
+
+.recharts-wrapper,
+.recharts-default-legend,
+.recharts-tooltip-wrapper {
+  font-family: var(--ui) !important;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .content-pane {
+    scroll-behavior: auto;
+  }
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    transition-duration: 0.01ms !important;
+  }
+}
+
+/* Peril identity. Red is heat and blue is cold, everywhere. */
+.pill[data-peril='heat'][data-active='true'] {
+  background: var(--heat);
+  color: #1b2026;
+}
+
+.pill[data-peril='cold'][data-active='true'] {
+  background: var(--cold);
+  color: #1b2026;
+}
+
+.pill[data-peril='both'][data-active='true'] {
+  background: linear-gradient(100deg, var(--heat) 0%, var(--heat) 46%, var(--cold) 54%, var(--cold) 100%);
+  color: #1b2026;
+}
+
+.data-table td.c-heat,
+.data-table th.c-heat {
+  background: rgba(255, 122, 85, 0.09);
+}
+
+.data-table td.c-cold,
+.data-table th.c-cold {
+  background: rgba(111, 180, 242, 0.09);
+}
+
+.data-table tbody tr:hover td.c-heat {
+  background: rgba(255, 122, 85, 0.15);
+}
+
+.data-table tbody tr:hover td.c-cold {
+  background: rgba(111, 180, 242, 0.15);
+}
+
+.data-table th.c-heat {
+  border-bottom-color: var(--heat);
+}
+
+.data-table th.c-cold {
+  border-bottom-color: var(--cold);
+}
+
+/* A slider paired with a typed value */
+.slider-row {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.slider-row input[type='number'] {
+  width: 74px;
+  flex-shrink: 0;
+  text-align: right;
+  padding: 4px 6px;
+  font-size: 12.5px;
+}
+
+/* Parameter chooser: a grid so every option is the same size. */
+.sweep-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 1px;
+  background: var(--rule);
+  border: 1px solid var(--rule);
+  border-radius: 2px;
+  overflow: hidden;
+}
+
+@media (min-width: 720px) {
+  .sweep-grid {
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+  }
+}
+
+.sweep-grid .pill {
+  border-radius: 0;
+  text-align: center;
+  padding: 9px 8px;
+  line-height: 1.3;
+}
+
+/* The two halves of the temperature scale carry their peril's colour. */
+.range-cold::-webkit-slider-thumb { background: var(--cold); }
+.range-cold::-moz-range-thumb { background: var(--cold); }
+.range-heat::-webkit-slider-thumb { background: var(--heat); }
+.range-heat::-moz-range-thumb { background: var(--heat); }
+
+.range-cold { background: linear-gradient(90deg, var(--cold) 0%, rgba(111,180,242,0.25) 100%); }
+.range-heat { background: linear-gradient(90deg, rgba(255,122,85,0.25) 0%, var(--heat) 100%); }
+
+input[type='range']:disabled { opacity: 0.4; cursor: default; }
+
+/* Peril blocks, so heat and cold inputs are never mistaken for each other. */
+.peril-block {
+  border: 1px solid var(--rule);
+  border-radius: 3px;
+  padding: 12px 13px 13px;
+  border-top-width: 2px;
+}
+
+.peril-block[data-peril='heat'] { border-top-color: var(--heat); }
+.peril-block[data-peril='cold'] { border-top-color: var(--cold); }
+
+.peril-head {
+  font-size: 10px;
+  font-weight: 600;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  margin-bottom: 11px;
+}
+
+.peril-head::before {
+  content: '';
+  width: 9px;
+  height: 9px;
+  border-radius: 2px;
+  background: currentColor;
+}
+
+/* Sweep options fill every row rather than leaving a gap on the last one. */
+.sweep-grid {
+  display: flex;
+  flex-wrap: wrap;
+}
+
+.sweep-grid .pill {
+  flex: 1 1 155px;
+}
+
+/* ---------------------------------------------------------------------------
+   Policy terms written as a sentence.
+
+   The three figures that define a payout read as one line of prose rather than
+   as three labelled boxes, so the per block rule is stated rather than implied.
+   The row wraps at the width of a peril column and the baselines stay aligned
+   across the wrap.
+   --------------------------------------------------------------------------- */
+.terms-line {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 6px 5px;
+  font-size: 13px;
+  line-height: 1.6;
+  color: var(--ink-soft);
+}
+
+.terms-word {
+  white-space: nowrap;
+}
+
+.terms-group {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  white-space: nowrap;
+}
+
+input[type='number'].inline-number {
+  width: auto;
+  text-align: center;
+  padding: 3px 4px;
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--ink);
+  flex-shrink: 0;
+}
+
+/* The figure belongs to its peril, so it carries the peril's colour. */
+.peril-block[data-peril='heat'] input.inline-number {
+  color: var(--heat);
+  border-color: rgba(255, 122, 85, 0.45);
+}
+
+.peril-block[data-peril='cold'] input.inline-number {
+  color: var(--cold);
+  border-color: rgba(111, 180, 242, 0.45);
+}
+
+.peril-block[data-peril='heat'] input.inline-number:hover,
+.peril-block[data-peril='heat'] input.inline-number:focus {
+  border-color: var(--heat);
+}
+
+.peril-block[data-peril='cold'] input.inline-number:hover,
+.peril-block[data-peril='cold'] input.inline-number:focus {
+  border-color: var(--cold);
+}
+
+/* ---------------------------------------------------------------------------
+   A plain reading of the panel above it.
+
+   The readout answers the question for someone who already knows the trade.
+   This answers it for someone who does not, in one sentence, without making
+   the specialist read anything they did not want.
+   --------------------------------------------------------------------------- */
+.plain-read {
+  font-size: 13px;
+  line-height: 1.65;
+  color: var(--ink-soft);
+  border-left: 2px solid var(--signal);
+  padding: 2px 0 2px 12px;
+}
+
+/* An inline jump to the panel a figure came from. */
+button.jump {
+  background: none;
+  border: 0;
+  padding: 0;
+  font: inherit;
+  color: var(--ink);
+  font-weight: 600;
+  cursor: pointer;
+  border-bottom: 1px dotted var(--muted);
+}
+
+button.jump:hover {
+  color: var(--signal);
+  border-bottom-color: var(--signal);
+}
+
+/* ---------------------------------------------------------------------------
+   Pinned results.
+
+   The section tabs and the headline figures travel together, so the answer is
+   on screen before anything has been read and stays there while the inputs
+   that drive it are moved several panels further down.
+   --------------------------------------------------------------------------- */
+.doc-head {
+  position: sticky;
+  top: 0;
+  z-index: 40;
+  background: var(--void);
+  border-bottom: 1px solid var(--rule);
+}
+
+.result-strip {
+  display: flex;
+  align-items: stretch;
+  gap: 0;
+  padding: 0 14px;
+  overflow-x: auto;
+  scrollbar-width: none;
+  border-top: 1px solid var(--rule);
+  background: var(--paper);
+}
+
+.result-strip::-webkit-scrollbar {
+  display: none;
+}
+
+.rs-main {
+  display: flex;
+  align-items: baseline;
+  gap: 8px;
+  padding: 8px 16px 8px 0;
+  flex-shrink: 0;
+}
+
+.rs-headline {
+  font-size: 27px;
+  font-weight: 600;
+  letter-spacing: -0.03em;
+  line-height: 1.05;
+  color: var(--signal);
+  font-variant-numeric: tabular-nums;
+}
+
+.rs-caption {
+  font-size: 9.5px;
+  font-weight: 500;
+  letter-spacing: 0.09em;
+  text-transform: uppercase;
+  color: var(--muted);
+  line-height: 1.35;
+}
+
+.rs-item {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  gap: 2px;
+  padding: 8px 16px;
+  border-left: 1px solid var(--rule);
+  flex-shrink: 0;
+}
+
+.rs-k {
+  font-size: 9.5px;
+  font-weight: 500;
+  letter-spacing: 0.09em;
+  text-transform: uppercase;
+  color: var(--muted);
+  white-space: nowrap;
+}
+
+.rs-v {
+  font-size: 15px;
+  font-weight: 600;
+  letter-spacing: -0.01em;
+  color: var(--ink);
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+}
+
+.rs-waiting {
+  font-size: 11.5px;
+  color: var(--muted);
+  padding: 14px 0;
+}
+
+@media (max-width: 760px) {
+  .rs-headline {
+    font-size: 22px;
+  }
+}
